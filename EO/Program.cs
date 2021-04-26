@@ -13,6 +13,7 @@ namespace EO
             var partList = new List<Part>();
             var singleReadingDictionary = new Dictionary<double, List<Part>>();
             var rangeReadingDictionary = new Dictionary<double, List<Part>>();
+            var waveLengthDictionary = new Dictionary<string, List<Part>>();
 
 
             //traversing csv
@@ -28,8 +29,8 @@ namespace EO
                         part.Name = entry;
                     }
                     else
-                    {
-                        var tempList = entry.Split("-").OrderByDescending(x => x.Trim()).ToList();
+                    {                        
+                        var tempList = entry.Split("-").Where(x => x.Trim() != "").OrderBy(x => Convert.ToDouble(x.Trim())).ToList();
                         var tempWaveLength = new Wavelength();
                         if (tempList.Count == 1)
                         {
@@ -62,19 +63,28 @@ namespace EO
 
                         }
                         part.WavelengthList.Add(tempWaveLength);
-                        string abdc = "";
-                        //put parts inside of dictionary
-                        //if single reading then put them in singleDictionary
-                        if (tempWaveLength.SingleReading)
+                        // new stuff here
+                        var tempPartList = new List<Part>();
+                        var key = "";
+                        if (!tempWaveLength.SingleReading)
                         {
-
+                            key = tempWaveLength.Start.ToString() + "-" + tempWaveLength.End.ToString();
                         }
                         else
                         {
-
+                            key = tempWaveLength.Start.ToString();
                         }
-
-
+                        if (waveLengthDictionary.TryGetValue(key, out tempPartList))
+                        {
+                            tempPartList.Add(part);
+                        }
+                        else
+                        {
+                            tempPartList = new List<Part>();
+                            tempPartList.Add(part);
+                            waveLengthDictionary.Add(key, tempPartList);
+                        }
+                        //end dictionary stuff here
 
                     }
                 }
