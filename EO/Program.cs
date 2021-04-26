@@ -10,6 +10,20 @@ namespace EO
     {
         public static void Main(string[] args)
         {
+            /*  Here is what the application is doing
+             *  1. Looping though CSV file
+             *  2. Putting the contents of the file inside of the waveLengthDictionary with the wave length as the key and a list of parts as values
+             *      Why?  Instead of looping though each indivdual wavelength and have n number of calculations we are cutting down on the amount of calculations because there are quite of few duplicates in the sample data.
+             *  3. Asking the user to input the wave length they want to search for
+             *  4. Loop though the waveLengthDictionary.  Convert the keys into a proper start and end values, and perform calculations. If there is a match, copy those matching entries to the resultPart list
+             *  5. Loop though resultPartList and print results
+             * 
+             *   Changes that could help out some bugs and readability
+             *   1. Check the input from the user can be converted from string to double
+             *   2. Create a function for lines 57-87 and 131-142.  Essentially its doing the same thing
+             * 
+             */
+
             var csvLines = File.ReadAllLines(Directory.GetCurrentDirectory() + @"\WavelengthData.csv").Select(x => x.Split(Environment.NewLine));
             var waveLengthDictionary = new Dictionary<string, List<Part>>();
             var resultPartList = new List<Part>();
@@ -100,10 +114,17 @@ namespace EO
                 }
             }
 
+            //Console actions
             Console.WriteLine("Input a Wavelength");
             string input = Console.ReadLine();
+            // end of console actions
+
 
             var inputDouble = Convert.ToDouble(input);
+
+
+
+
             //now loop though wavelength dicionary and find out if its between the values
             foreach (var tempWaveLengthEntry in waveLengthDictionary)
             {
@@ -137,6 +158,7 @@ namespace EO
                     //no matches
                 }
             }
+
             //now loop though result list and print out results
             var sb = new StringBuilder();
             if (resultPartList.Count > 0)
