@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace EO
 {
@@ -10,10 +11,8 @@ namespace EO
         public static void Main(string[] args)
         {
             var csvLines = File.ReadAllLines(@"C:\Users\gmale\source\repos\EO\EO\WavelengthData.csv").Select(x => x.Split(Environment.NewLine));
-            var partList = new List<Part>();
-            var singleReadingDictionary = new Dictionary<double, List<Part>>();
-            var rangeReadingDictionary = new Dictionary<double, List<Part>>();
             var waveLengthDictionary = new Dictionary<string, List<Part>>();
+            var resultPartList = new List<Part>();
 
 
             //traversing csv
@@ -29,12 +28,17 @@ namespace EO
                         part.Name = entry;
                     }
                     else
-                    {                        
-                        var tempList = entry.Split("-").Where(x => x.Trim() != "").OrderBy(x => Convert.ToDouble(x.Trim())).ToList();
+                    {
                         var tempWaveLength = new Wavelength();
-                        if (tempList.Count == 1)
+                        var tempList = new List<string>();
+                        if (!entry.Contains("-"))
                         {
+                            tempList.Add(entry);
                             tempWaveLength.SingleReading = true;
+                        }
+                        else
+                        {
+                            tempList = entry.Split("-").Where(x => x.Trim() != "").OrderBy(x => Convert.ToDouble(x.Trim())).ToList();
                         }
                         foreach (var temp in tempList)
                         {
@@ -57,13 +61,19 @@ namespace EO
                                 }
                                 else
                                 {
-                                    tempWaveLength.End = 99999;
+                                    tempWaveLength.End = int.MaxValue;
                                 }
                             }
-
                         }
+
+
+                        if (tempWaveLength.End == 0 && tempWaveLength.SingleReading == false)
+                        {
+                            tempWaveLength.End = int.MaxValue;
+                        }
+
                         part.WavelengthList.Add(tempWaveLength);
-                        // new stuff here
+                        //dictionary things are here
                         var tempPartList = new List<Part>();
                         var key = "";
                         if (!tempWaveLength.SingleReading)
@@ -88,11 +98,75 @@ namespace EO
 
                     }
                 }
-                partList.Add(part);
             }
 
+            Console.WriteLine("Input a Wavelength");
+            string input = Console.ReadLine();
+
+            var inputDouble = Convert.ToDouble(input);
+            //now loop though wavelength dicionary and find out if its between the values
+            foreach (var tempWaveLengthEntry in waveLengthDictionary)
+            {
+                var waveLengthkey = tempWaveLengthEntry.Key.Split("-");
+                var waveLengthParam = new Wavelength();
+                foreach (var temp in waveLengthkey)
+                {
+                    if (waveLengthParam.Start == 0)
+                    {
+                        waveLengthParam.Start = Convert.ToDouble(temp);
+                    }
+                    else
+                    {
+                        waveLengthParam.End = Convert.ToDouble(temp);
+                    }
+                }
+                if (waveLengthParam.End == 0)
+                {
+                    waveLengthParam.SingleReading = true;
+                }
+                if (inputDouble >= waveLengthParam.Start && inputDouble <= waveLengthParam.End && waveLengthParam.SingleReading == false)
+                {
+                    resultPartList.AddRange(tempWaveLengthEntry.Value);
+                }
+                else if (waveLengthParam.SingleReading == true && inputDouble == waveLengthParam.Start)
+                {
+                    resultPartList.AddRange(tempWaveLengthEntry.Value);
+                }
+                else
+                {
+                    //no matches
+                }
+            }
+            //now loop though result list and print out results
+            var sb = new StringBuilder();
+            if (resultPartList.Count > 0)
+            {
+                sb.AppendLine("Part        Wavelength");
+                foreach (var result in resultPartList)
+                {
+                    if (result.WavelengthList[0].End == int.MaxValue) //just putting this back to the original format
+                    {
+                        sb.AppendLine($"{result.Name}     {result.WavelengthList[0].Start} - ");
+                    }
+                    else if (result.WavelengthList[0].SingleReading)
+                    {
+                        sb.AppendLine($"{result.Name}     {result.WavelengthList[0].Start}");
+                    }
+                    else if (!result.WavelengthList[0].SingleReading)
+                    {
+                        sb.AppendLine($"{result.Name}     {result.WavelengthList[0].Start} - {result.WavelengthList[0].End}");
+                    }
+                }
+                Console.WriteLine(sb.ToString());
+                Console.WriteLine($"Total Matches: {resultPartList.Count}");
+            }
+            else
+            {
+                Console.WriteLine("No Results Found");
+            }
+
+            Console.WriteLine("Press Enter to End");
             Console.ReadLine();
-            //Console.WriteLine("Hello World!");
         }
 
     }
