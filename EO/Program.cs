@@ -10,7 +10,7 @@ namespace EO
     {
         public static void Main(string[] args)
         {
-            var csvLines = File.ReadAllLines(@"C:\Users\gmale\source\repos\EO\EO\WavelengthData.csv").Select(x => x.Split(Environment.NewLine));
+            var csvLines = File.ReadAllLines(Directory.GetCurrentDirectory() + @"\WavelengthData.csv").Select(x => x.Split(Environment.NewLine));
             var waveLengthDictionary = new Dictionary<string, List<Part>>();
             var resultPartList = new List<Part>();
 
